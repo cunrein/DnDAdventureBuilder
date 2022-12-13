@@ -7,7 +7,7 @@ import com.eclaw.engine.Window;
  */
 public class App 
 {
-    public static void main( String[] args )
+    public static void main(final String[] args)
     {
         Window window = Window.get();
         window.run();
