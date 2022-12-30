@@ -1,13 +1,15 @@
 package com.eclaw.engine;
 
+import com.eclaw.util.SceneType;
+import com.eclaw.util.Time;
 import lombok.Getter;
+import lombok.Setter;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.GLFW_FALSE;
-import static org.lwjgl.glfw.GLFW.GLFW_KEY_SPACE;
 import static org.lwjgl.glfw.GLFW.GLFW_MAXIMIZED;
 import static org.lwjgl.glfw.GLFW.GLFW_RESIZABLE;
 import static org.lwjgl.glfw.GLFW.GLFW_TRUE;
@@ -36,24 +38,32 @@ import static org.lwjgl.opengl.GL11.glClearColor;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 @Getter
+@Setter
 public class Window {
+    private static Window window = null;
+    private static Scene currentScene = null;
     private final int width = 1920;
     private final int height = 1080;
     private final String title = "Game Engine";
-
-    private static Window window = null;
+    private final float a = 1;
     private long glfwWindow;
-
     private float r = 1;
     private float g = 1;
     private float b = 1;
-    private final float a = 1;
     private boolean fadeToBlack = false;
 
-    private Window() {}
+    private Window() {
+    }
+
+    public static void changeScene(final SceneType newScene) {
+        switch (newScene) {
+            case LEVEL -> currentScene = new LevelScene();
+            case LEVEL_EDITOR -> currentScene = new LevelEditorScene();
+        }
+    }
 
     public static Window get() {
-        if(Window.window == null) {
+        if (Window.window == null) {
             Window.window = new Window();
         }
         return Window.window;
@@ -77,12 +87,12 @@ public class Window {
     }
 
     private void loop() {
-
-
-
+        var beginTime = Time.getTime();
+        var endTime = Time.getTime();
+        var dt = -1.0f;
         // Run the rendering loop until the user has attempted to close
         // the window or has pressed the ESCAPE key.
-        while ( !glfwWindowShouldClose(glfwWindow) ) {
+        while (!glfwWindowShouldClose(glfwWindow)) {
             // Set the clear color
             glClearColor(r, g, b, a);
 
@@ -90,21 +100,28 @@ public class Window {
             // invoked during this call.
             glfwPollEvents();
 
-            if (fadeToBlack) {
-                r = Math.max(r - 0.01f, 0);
-                g = Math.max(g - 0.01f, 0);
-                b = Math.max(b - 0.01f, 0);
-            } else {
-                r = Math.min(r + 0.01f, 1);
-                g = Math.min(g + 0.01f, 1);
-                b = Math.min(b + 0.01f, 1);
+            if (dt >= 0) {
+                currentScene.update(dt);
             }
 
-            fadeToBlack = KeyListener.isKeyPressed(GLFW_KEY_SPACE);
+//            if (fadeToBlack) {
+//                r = Math.max(r - 0.01f, 0);
+//                g = Math.max(g - 0.01f, 0);
+//                b = Math.max(b - 0.01f, 0);
+//            } else {
+//                r = Math.min(r + 0.01f, 1);
+//                g = Math.min(g + 0.01f, 1);
+//                b = Math.min(b + 0.01f, 1);
+//            }
+//
+//            fadeToBlack = KeyListener.isKeyPressed(GLFW_KEY_SPACE);
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
 
             glfwSwapBuffers(glfwWindow); // swap the color buffers
+            endTime = Time.getTime();
+            dt = endTime - beginTime;
+            beginTime = endTime;
         }
     }
 
@@ -114,7 +131,7 @@ public class Window {
         GLFWErrorCallback.createPrint(System.err).set();
 
         // Initialize GLFW. Most GLFW functions will not work before doing this.
-        if ( !glfwInit() )
+        if (!glfwInit())
             throw new IllegalStateException("Unable to initialize GLFW");
 
         // Configure GLFW
@@ -125,7 +142,7 @@ public class Window {
 
         // Create the window
         glfwWindow = glfwCreateWindow(this.width, this.height, this.title, NULL, NULL);
-        if ( glfwWindow == NULL ) {
+        if (glfwWindow == NULL) {
             throw new IllegalStateException("Failed to create the GLFW window");
         }
 
@@ -148,5 +165,6 @@ public class Window {
         // creates the GLCapabilities instance and makes the OpenGL
         // bindings available for use.
         GL.createCapabilities();
+        currentScene = new LevelEditorScene();
     }
 }

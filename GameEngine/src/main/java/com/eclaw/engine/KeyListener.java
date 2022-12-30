@@ -7,7 +7,7 @@ import static org.lwjgl.glfw.GLFW.glfwSetWindowShouldClose;
 
 public class KeyListener {
     private static KeyListener instance;
-    private final boolean keyPressed[] = new boolean[350];
+    private final boolean[] keyPressed = new boolean[350];
 
     private KeyListener() {
 
@@ -22,7 +22,7 @@ public class KeyListener {
 
     public static void keyCallback(final long window, final int key, final int scancode, final int action, final int mods) {
 
-        if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE ) {
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
             glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
         }
 
